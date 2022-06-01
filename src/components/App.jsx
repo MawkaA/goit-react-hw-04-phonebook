@@ -1,83 +1,77 @@
-import React,{Component} from 'react';
+import React,{useState, useEffect} from 'react';
 import ContactForm from './ContactForm/ContactForm';
-import initialContacts from './ContactList/Contacts.json';
 import ContactList from './ContactList/ContactList';
 import {nanoid} from 'nanoid';
 import Filter from './Filter/Filter';
 import'./App.css';
 
-class App extends Component {
-  state = {
-  contacts: initialContacts,
-  name: '',
-  filter:''
+export default function App() {
+
+  const [contacts, setContacts] = useState([
+    { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
+    { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
+    { id: "id-3", name: "Eden Clements", number: "645-17-79" },
+    { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
+  ]);
+  const [filter, setFilter] = useState("");
+
+  useEffect(() => {
+    console.log("use");
+    const contact = localStorage.getItem("contact");
+    const contactsParsed = JSON.parse(contact);
+    if (contactsParsed) {
+      setContacts(contactsParsed);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("contact", JSON.stringify(contacts));
+  });
+
+  const addContact = (data) => {
+    const { name, number } = data;
+    const newContact = {
+      name,
+      number,
+      id: nanoid(),
+    };
+    if (
+      contacts.find(
+        (contact) =>
+          contact.name.toLowerCase() === newContact.name.toLowerCase()
+      )
+    ) {
+      return alert(`${newContact.name} is already in contacts.`);
+    }
+    setContacts([newContact, ...contacts]);
+  };
+
+
+  const deleteContact = (contactId) => {
+    setContacts(prevState => (prevState.filter((contact) => contact.id !== contactId))
+    );
+  };
+
+  const changeFilter = (event) => {
+  setFilter(event.currentTarget.value );
 };
 
-addContact = ({name,number}) => {
-const contact = {
-  id: nanoid(),
-  name,
-  number
-};
+//  const getVisibleContacts = contacts.filter((contact) =>
+// contact.name.toLowerCase().includes(filter.toLowerCase())
+// );
 
-const { contacts } = this.state;
-
-contacts.find(({ name }) => name.toLowerCase() === contact.name.toLowerCase() )
-  ? alert(`${name} is already added.`)
-  : this.setState(({ contacts }) => ({ contacts: [...contacts, contact] }))
-
-
-};
-
-deleteContact = contactId => {
-    this.setState(prevState => ({
-        contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
-};
-
-changeFilter = event => {
-this.setState({ filter: event.currentTarget.value });
-};
-
-getVisibleContacts = () => {
-const { filter, contacts } = this.state;
-const normalizedFilter = filter.toLowerCase();
-
-return contacts.filter(contact =>
-  contact.name.toLowerCase().includes(normalizedFilter),
-);
-};
-
-componentDidMount() {
-  const contacts = localStorage.getItem("contacts");
-  const parsedContacts = JSON.parse(contacts);
-  console.log(parsedContacts);
-
-if (parsedContacts) {
-  this.setState({ contacts:parsedContacts})
-}
-
-}
-
-componentDidUpdate(prevProps, prevState) {
-      if (this.state.contacts !== prevState.contacts) {
-       localStorage.setItem('contacts', JSON.stringify(this.state.contacts))
-        }
-  }
-
-render() {  
-  const { filter  } = this.state;
-  const visibleContacts = this.getVisibleContacts();
-    return(
+return(
         <>
           <h1 className="title">Phonebook</h1>
-          <ContactForm className="contact" onSubmit={this.addContact} />
+          <ContactForm className="contact" onSubmit={addContact} />
           <h2 className="title">Contacts</h2>
-          <Filter value={filter} onChange={this.changeFilter}/>
-          <ContactList contacts = { visibleContacts }
-            onDeleteContact = { this.deleteContact }/> 
+          <Filter filterText={filter} changeFilter={changeFilter}/>
+          <ContactList 
+            contacts={contacts}
+            filterText={filter}
+            // contacts = { getVisibleContacts }
+            deleteContact = { deleteContact }/> 
         </>
     );   
-};   
+  
 };
-export default App;
