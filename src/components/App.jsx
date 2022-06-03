@@ -25,8 +25,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("contact", JSON.stringify(contacts));
-  });
+    window.localStorage.setItem('contacts', JSON.stringify(contacts))
+   }, [contacts])
 
   const addContact = (data) => {
     const { name, number } = data;
@@ -36,14 +36,11 @@ export default function App() {
       id: nanoid(),
     };
     if (
-      contacts.find(
-        (contact) =>
-          contact.name.toLowerCase() === newContact.name.toLowerCase()
-      )
+      contacts.find((contact) =>contact.name.toLowerCase() === newContact.name.toLowerCase())
     ) {
       return alert(`${newContact.name} is already in contacts.`);
     }
-    setContacts([newContact, ...contacts]);
+    setContacts(prevState => [newContact, ...prevState]);
   };
 
 
